@@ -1,99 +1,141 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <locale.h>
 
-
-struct point
-{
-	double x;
-	double y;
+#define ZERO 48
+#define NINE 57
+struct point {
+    double x;
+    double y;
 };
 typedef struct point point;
 
-struct triangle
-{
-	point apex1;
-	point apex2;
-	point apex3;
-	point checkApex;
-};
-typedef struct triangle triangle;
-
-struct circle
-{
-	point center;
-	double radius;
+struct circle {
+    point center;
+    double radius;
 };
 typedef struct circle circle;
 
-int isArguments(char *str)
+void strToLower(char* str)
 {
-	int ret = 1;
-	for (int i = 7; str[i] != ')'; i++)
-	{
-		if ((str[i] >= 48 && str[i] <= 57) || str[i] == '.' || str[i] == ',' || str[i] == ' ')
-			ret = 0;
-		else
-		{
-			ret = 1;
-			break;
-		}
-	}
-	return ret;
+    for (int i = 0; i < strlen(str); i++)
+        str[i] = tolower(str[i]);
 }
 
-int isEnd(char *str)
+int isArguments(char* str)
 {
-	int ret = 1;
-	int firstBracket = 0;
-	long int endingSymbol = strlen(str) - 1;
-	for (int i = 0; i < strlen(str); i++)
-	{
-		if (str[i] == ')')
-		{
-			firstBracket = i;
-			break;
-		}
-	}
-	if (firstBracket == endingSymbol)
-		ret = 0;
-	return ret;
+    int countArgs = 0;
+    for (int i = 7; str[i] != ',' && i < strlen(str); i++) {
+        if ((str[i] != '.' && str[i] != ' ')
+            && !(str[i] >= ZERO && str[i] <= NINE)) {
+            printf("Неправильно введены координаты объекта\n");
+            return 1;
+        }
+        if (str[i] >= ZERO && str[i] <= NINE && str[i + 1] == ' ')
+            countArgs++;
+        if (str[i] == '.' && (str[i + 1] == ' ' || str[i + 1] == '.')) {
+            printf("Неправильно введены координаты объекта\n");
+            return 1;
+        }
+    }
+    if (countArgs != 1) {
+        printf("Неправильно введены координаты объекта\n");
+        return 1;
+    }
+    int index = 0;
+    countArgs = 0;
+    for (int i = 0; i != strlen(str); i++) {
+        if (str[i] == ',') {
+            index = i + 1;
+            i = strlen(str) - 1;
+        }
+    }
+    for (; str[index] != ')' && index < strlen(str); index++) {
+        if ((str[index] != '.' && str[index] != ' ')
+            && !(str[index] >= ZERO && str[index] <= NINE)) {
+            printf("Неправильно введён радиус объекта\n");
+            return 1;
+        }
+        if (str[index] >= ZERO && str[index] <= NINE && str[index + 1] == ' ')
+            countArgs++;
+        if (str[index] == '.'
+            && (str[index + 1] == ' ' || str[index + 1] == '.')) {
+            printf("Неправильно введены координаты объекта\n");
+            return 1;
+        }
+    }
+    if (countArgs != 0) {
+        printf("Неправильно введён радиус объекта\n");
+        return 0;
+    }
+    return 0;
 }
 
-int isObject(char *str)
+int isLastBracket(char* str)
 {
-	int ret = 1;
-	char rec[100];
-	for (int i = 0; i < strlen(str); i++)
-	{
-		if (str[i] != '(')
-			rec[i] = str[i];
-		else
-			break;
-	}
-	char figure[] = "circle";
-	if (strcmp(rec, figure) == 0)
-	{
-		ret = 0;
-	}
-	return ret;
+    int ret = 1;
+    int firstBracket = 0;
+    size_t endingSymbol;
+    if (str[strlen(str) - 1] == '\n')
+        endingSymbol = strlen(str) - 2;
+    else
+        endingSymbol = strlen(str) - 1;
+    for (int i = 0; i < strlen(str); i++) {
+        if (str[i] == ')') {
+            firstBracket = i;
+            break;
+        }
+    }
+    if (firstBracket == endingSymbol)
+        ret = 0;
+    return ret;
 }
 
-int main(int argc, char **argv)
+int isObject(char* str)
 {
-	setlocale(LC_ALL, " ");
-	FILE *file;
-	file = fopen("enter.txt", "r");
-	char str[100];
-	fgets(str, 99, file);
-	if (isObject(str))
-		printf("Ошибка на элементе 0: Неправильный ввод названия объекта\n");
-	else if (isArguments(str))
-		printf("Ошибка на элементе 7: Неправильно введены данные объекта\n");
-	else if (isEnd(str))
-		printf("Ошибка на элементе %ld: Неправильный завершающий символ\n", strlen(str) - 1);
-	else
-		printf("Данные введены корректно\n");
-	fclose(file);
-	return 0;
+    int ret = 1;
+    char rec[100];
+    for (int i = 0; i < strlen(str); i++) {
+        if (str[i] != '(')
+            rec[i] = str[i];
+        else
+            break;
+    }
+    char figure[] = "circle";
+    if (strcmp(rec, figure) == 0) {
+        ret = 0;
+    }
+    return ret;
+}
+
+int printErrors(char* str, int countObj)
+{
+    if (isObject(str)) {
+        printf("Неправильно введено название объекта\n");
+    } else if (isArguments(str)) {
+        return 0;
+    } else if (isLastBracket(str)) {
+        printf("Неправильный завершающий символ\n");
+    }
+    return 0;
+}
+
+int main()
+{
+    FILE* file;
+    file = fopen("input.txt", "r");
+    if (!file) {
+        printf("Не найден файл\n");
+        return -1;
+    }
+    char str1[100];
+    int countObj = 0;
+    while (fgets(str1, 99, file)) {
+        countObj++;
+        strToLower(str1);
+        printErrors(str1, countObj);
+        printf("%s\n", str1);
+    }
+    fclose(file);
+    return 0;
 }
