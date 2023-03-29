@@ -123,7 +123,7 @@ int printErrors(char* str, int countObj)
 int main()
 {
     FILE* file;
-    file = fopen("input.txt", "r");
+    file = fopen("enter.txt", "r");
     if (!file) {
         printf("Не найден файл\n");
         return -1;
