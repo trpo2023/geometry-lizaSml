@@ -1,1 +1,9 @@
-geometry
+.vscode/
+bin/geometry
+bin/test
+*.a
+*.d
+*.o
+*~
+*swp
+*.tmp

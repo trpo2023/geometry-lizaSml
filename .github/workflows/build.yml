@@ -1,0 +1,28 @@
+name: Build
+
+on: push
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Autoformat
+        run: make format
+
+      - name: Check codestyle
+        run: git ls-files *.{c,h} | xargs clang-format -i --verbose && git diff --exit-code
+
+      - name: Build
+        run: make
+
+      - name: Run program
+        run: cd bin/ && ./geometry
+
+      - name: Build tests
+        run: make test
+
+      - name: Run tests
+      run: cd bin/ && ./test
